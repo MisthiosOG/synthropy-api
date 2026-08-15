@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY — Playground</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; height: 100%; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    
+    
+    color: #fff;
+    line-height: 1.5;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 48px; width: 100%; }
+  header {
+    border-bottom: 2px solid #333; padding: 14px 0; display: flex; align-items: center;
+    justify-content: space-between; flex-shrink: 0;
+  }
+  .logo { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .logo span { color: #666; }
+  nav { display: flex; gap: 24px; }
+  nav a { color: #888; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  nav a:hover { color: #fff; }
+  .layout { flex: 1; display: flex; gap: 0; padding: 16px 0; overflow: hidden; }
+
+  .sidebar { width: 260px; flex-shrink: 0; border: 2px solid #333; padding: 16px;
+    display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .sidebar .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #666; padding-bottom: 6px; border-bottom: 1px solid #222; }
+  .sidebar label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 4px; }
+  .sidebar input, .sidebar select { width: 100%; background: transparent; border: 2px solid #333;
+    color: #fff; font-family: inherit; font-size: 12px; padding: 8px 10px; }
+  .sidebar select option { background: #000; color: #fff; }
+  .sidebar .key-display { font-size: 11px; color: #888; word-break: break-all; padding: 8px;
+    border: 1px solid #222; background: #0a0a0a; }
+  .sidebar .row { display: flex; gap: 10px; align-items: center; }
+  .sidebar .row input[type=range] { flex: 1; border: none; padding: 0; accent-color: #fff; }
+  .sidebar .row .val { font-size: 12px; color: #fff; min-width: 30px; text-align: right; }
+  .sidebar textarea { width: 100%; background: transparent; border: 2px solid #333; color: #fff;
+    font-family: inherit; font-size: 12px; padding: 8px 10px; resize: none; min-height: 60px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; margin-left: 16px; }
+  .model-badge { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; flex-shrink: 0; }
+  .model-badge span { border: 2px solid #333; padding: 3px 8px; font-size: 10px; color: #666; }
+
+  .chat-box { flex: 1; border: 2px solid #333; padding: 16px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .msg { max-width: 90%; font-size: 13px; line-height: 1.6; }
+  .msg.user { border: 2px solid #fff; padding: 10px 14px; align-self: flex-end; }
+  .msg.user .content { white-space: pre-wrap; word-break: break-word; }
+  .msg.assistant { align-self: flex-start; width: 100%; }
+
+  .msg.assistant .thinking-box {
+    border: 2px solid #444; padding: 12px 14px; background: #080808;
+    margin-bottom: 16px; position: relative;
+  }
+  .msg.assistant .thinking-box::after {
+    content: ''; position: absolute; bottom: -10px; left: 30px; right: 30px;
+    border-bottom: 2px dashed #444;
+  }
+  .msg.assistant .thinking-box .label {
+    font-size: 8px; text-transform: uppercase; letter-spacing: 1px;
+    color: #555; margin-bottom: 8px;
+  }
+  .msg.assistant .thinking-box .content {
+    font-size: 12px; color: #666; font-style: italic;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.assistant .answer-box { border: 2px solid #333; padding: 12px 14px; margin-top: 6px; }
+  .msg.assistant .answer-box .label {
+    font-size: 8px; text-transform: uppercase; letter-spacing: 1px;
+    color: #555; margin-bottom: 8px;
+  }
+  .msg.assistant .answer-box .content { color: #e0e0e0; white-space: pre-wrap; word-break: break-word; }
+  .msg.assistant .answer-box .content strong { color: #fff; }
+  .msg.assistant .answer-box .content code {
+    background: #111; border: 1px solid #333; padding: 1px 4px; font-size: 12px; color: #0f0;
+  }
+
+  .input-row { display: flex; gap: 10px; flex-shrink: 0; }
+  .input-row input { flex: 1; background: transparent; border: 2px solid #333; color: #fff;
+    font-family: inherit; font-size: 13px; padding: 10px 14px; outline: none; }
+  .input-row input:focus { border-color: #fff; }
+  .input-row button { padding: 10px 20px; border: 2px solid #fff; background: transparent; color: #fff;
+    font-family: inherit; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; }
+  .input-row button:hover { background: #fff; color: #000; }
+  .input-row button:disabled { opacity: .3; cursor: not-allowed; }
+  .loading-msg { color: #555; font-size: 11px; align-self: flex-start; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #333; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+  @media (max-width: 700px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .main { margin-left: 0; margin-top: 16px; }
+    .msg { max-width: 100%; }
+  }
+
+  body.light { background: #fff; color: #000; }
+  body.light .stat-card, body.light .key-box, body.light .token-bar-wrap, 
+  body.light .table-wrap, body.light .sidebar, body.light .chat-box,
+  body.light .msg.assistant .answer-box, body.light .msg.assistant .thinking-box,
+  body.light .feature-card, body.light .pricing-card, body.light .auth-card,
+  body.light .model-badge span, body.light .code-block { background: #f5f5f5; border-color: #ccc; }
+  body.light .stat-card .val, body.light .stat-card .lbl, body.light .stat-card .sub { color: #333; }
+  body.light .stat-card .sub { border-color: #ddd; }
+  body.light .token-bar { background: #ddd; }
+  body.light .token-bar .fill { background: linear-gradient(90deg, #3b82f6, #22c55e); }
+  body.light th { color: #888; border-color: #ddd; }
+  body.light td { color: #444; border-color: #eee; }
+  body.light tr:hover td { background: #eee; }
+  body.light .key-box .key { color: #444; }
+  body.light .key-box .btn { background: #eee; color: #444; border-color: #ccc; }
+  body.light .key-box .btn:hover { background: #000; color: #fff; border-color: #000; }
+  body.light .logo span { color: #999; }
+  body.light .msg.user { border-color: #000; }
+  body.light input, body.light select, body.light textarea { border-color: #ccc; color: #000; }
+  body.light ::-webkit-scrollbar-thumb { background: #ccc; }
+  body.light .section-title { color: #999; }
+  body.light .sidebar .section-title { border-color: #ddd; }
+  body.light .sidebar .key-display { background: #eee; border-color: #ddd; color: #666; }
+
+
+  .theme-btn {
+    background: none; border: 2px solid #333; color: #888;
+    font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; padding: 8px 14px;
+  }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+  body.light .theme-btn { border-color: #ccc; color: #888; }
+  body.light .theme-btn:hover { border-color: #000; color: #000; }
+
+
+  .logo-icon { width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="container" style="display:flex;flex-direction:column;height:100%;">
+  <header>
+    <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/PLAYGROUND</span></div>
+    <nav>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="docs.html">Docs</a>
+      <a href="models.html">Models</a>
+      <a href="playground.html">Playground</a>
+      <a href="dashboard.html">Dashboard</a>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </nav>
+  </header>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="section-title">Model Settings</div>
+      <div>
+        <label>Model</label>
+        <select id="modelSelect">
+          <option value="synthropy-direct">Synthropy-Direct (Unfiltered)</option>
+          <option value="synthropy-v1">Synthropy-V1 (Balanced)</option>
+          <option value="deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash</option>
+          <option value="MiniMaxAI/MiniMax-M2.7">MiniMax-M2.7</option>
+          <option value="moonshotai/Kimi-K2.6">Kimi-K2.6</option>
+        </select>
+      </div>
+      <div>
+        <label>Temperature</label>
+        <div class="row">
+          <input type="range" id="tempRange" min="0" max="2" step="0.1" value="0.7">
+          <span class="val" id="tempVal">0.7</span>
+        </div>
+      </div>
+      <div>
+        <label>Max tokens</label>
+        <input type="number" id="maxTokens" value="250000" min="1" max="1000000">
+      </div>
+      <div>
+        <label>System prompt</label>
+        <textarea id="sysPrompt" placeholder="Optional system prompt..."></textarea>
+      </div>
+      <div>
+        <label>API Key</label>
+        <div class="key-display" id="keyDisplay">---</div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="model-badge">
+        <span>MiniMax-M2.7</span>
+        <span>Kimi-K2.6</span>
+        <span>Synthropy-Direct</span>
+        <span>Synthropy-V1</span>
+        <span>DeepSeek-V4-Flash</span>
+        <span>MiniMax-M2.7</span>
+        <span>Kimi-K2.6</span>
+      </div>
+      <div class="chat-box" id="chatBox">
+        <div style="color:#555;font-size:11px;text-align:center;padding:30px 0;">Send a message to start chatting</div>
+      </div>
+      <div class="input-row">
+        <input type="text" id="chatInput" placeholder="Type a message..." autofocus>
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var key = localStorage.getItem('syn_api_key');
+if (!key) window.location.href = 'signin.html';
+document.getElementById('keyDisplay').textContent = key;
+
+document.getElementById('tempRange').addEventListener('input', function() {
+  document.getElementById('tempVal').textContent = this.value;
+});
+
+var chatBox = document.getElementById('chatBox');
+var chatInput = document.getElementById('chatInput');
+var sendBtn = document.getElementById('sendBtn');
+var modelSelect = document.getElementById('modelSelect');
+
+chatInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function fmtContent(text) {
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+function splitThinking(raw) {
+  // Pattern 1:  think ...  /think tags
+  var si = raw.indexOf('  think');
+  var ei = raw.indexOf(' /think');
+  if (si !== -1 && ei !== -1 && ei > si) {
+    return {
+      thinking: raw.substring(si + 8, ei).trim(),
+      answer: (raw.substring(0, si) + raw.substring(ei + 7)).trim()
+    };
+  }
+  
+  // Pattern 3:  ...  (DeepSeek)
+  si = raw.indexOf('');
+  ei = raw.indexOf('');
+  if (si !== -1 && ei !== -1 && ei > si) {
+    return {
+      thinking: raw.substring(si + 4, ei).trim(),
+      answer: (raw.substring(0, si) + raw.substring(ei + 4)).trim()
+    };
+  }
+  return { thinking: '', answer: raw };
+}
+
+function addMsg(role, rawContent) {
+  var empty = chatBox.querySelector('div');
+  if (empty && empty.style.color) empty.remove();
+
+  if (role === 'user') {
+    var div = document.createElement('div');
+    div.className = 'msg user';
+    div.innerHTML = '<div class="content">' + fmtContent(rawContent) + '</div>';
+    chatBox.appendChild(div);
+  } else {
+    var parts = splitThinking(rawContent);
+    var wrap = document.createElement('div');
+    wrap.className = 'msg assistant';
+
+    if (parts.thinking) {
+      var tb = document.createElement('div');
+      tb.className = 'thinking-box';
+      tb.innerHTML = '<div class="label">THINKING</div><div class="content">' + fmtContent(parts.thinking) + '</div>';
+      wrap.appendChild(tb);
+    }
+
+    var ab = document.createElement('div');
+    ab.className = 'answer-box';
+    ab.innerHTML = '<div class="label">RESPONSE</div><div class="content">' + fmtContent(parts.answer) + '</div>';
+    wrap.appendChild(ab);
+
+    chatBox.appendChild(wrap);
+  }
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function addLoading() {
+  var div = document.createElement('div');
+  div.className = 'loading-msg'; div.id = 'loadingMsg';
+  div.textContent = '> thinking...';
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeLoading() {
+  var el = document.getElementById('loadingMsg');
+  if (el) el.remove();
+}
+
+function sendMessage() {
+  var text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  sendBtn.disabled = true;
+  addMsg('user', text);
+  addLoading();
+
+  var messages = [];
+  var sys = document.getElementById('sysPrompt').value.trim();
+  if (sys) messages.push({role: 'system', content: sys});
+  messages.push({role: 'user', content: text});
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: modelSelect.value,
+      messages: messages,
+      api_key: key,
+      temperature: parseFloat(document.getElementById('tempRange').value),
+      max_tokens: parseInt(document.getElementById('maxTokens').value)
+    })
+  })
+  .then(function(r) { return r.json().then(function(d) { return {status: r.status, body: d}; }); })
+  .then(function(res) {
+    removeLoading();
+    if (res.status === 200) {
+      addMsg('assistant', res.body.content || '(empty)');
+    } else {
+      addMsg('assistant', '[Error] ' + (res.body.detail || 'Request failed'));
+    }
+  })
+  .catch(function() {
+    removeLoading();
+    addMsg('assistant', '[Error] Cannot reach server');
+  })
+  .finally(function() { sendBtn.disabled = false; chatInput.focus(); });
+}
+</script>
+<script>
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  var isLight = b.classList.contains('light');
+  localStorage.setItem('synth-theme', isLight ? 'light' : 'dark');
+  var btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? 'Dark' : 'Light';
+}
+// Apply on load
+(function() {
+  if (localStorage.getItem('synth-theme') === 'light') {
+    document.body.classList.add('light');
+    var btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = 'Dark';
+  }
+})();
+</script>
+</body>
+</html>
