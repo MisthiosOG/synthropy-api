@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY — Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    
+    
+    color: #fff;
+    line-height: 1.5;
+  }
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+
+  header {
+    border-bottom: 2px solid #333;
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .logo span { color: #666; }
+  nav a { color: #888; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; margin-left: 24px; }
+  nav a:hover { color: #fff; }
+
+  h1 { font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 40px 0 24px; }
+
+  /* API Key box */
+  .key-box {
+    border: 2px solid #333;
+    background: #111;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .key-box .label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .key-box .key { font-size: 13px; color: #ccc; word-break: break-all; }
+  .key-box .btn {
+    padding: 10px 20px;
+    border: 2px solid #555;
+    background: #1a1a1a;
+    color: #ccc;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .key-box .btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+  /* Stat cards grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+
+  .stat-card {
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 20px;
+    position: relative;
+  }
+  .stat-card .val { font-size: 26px; font-weight: 700; margin-bottom: 4px; letter-spacing: -.5px; }
+  .stat-card .lbl { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: .8px; }
+  .stat-card .sub { font-size: 11px; color: #444; margin-top: 8px; border-top: 1px solid #1a1a1a; padding-top: 6px; }
+  .stat-card .sub span { color: #666; }
+
+  /* Accent border per card */
+  .stat-card:nth-child(1) { border-left: 3px solid #4a9eff; }
+  .stat-card:nth-child(2) { border-left: 3px solid #6fcf97; }
+  .stat-card:nth-child(3) { border-left: 3px solid #f2c94c; }
+  .stat-card:nth-child(4) { border-left: 3px solid #bb6bd9; }
+
+  /* Token bar */
+  .token-bar-wrap {
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  .token-bar-wrap .label-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 12px; }
+  .token-bar-wrap .label-row .l { color: #888; }
+  .token-bar-wrap .label-row .r { color: #ccc; }
+  .token-bar-wrap .label-row .r strong { color: #fff; }
+  .token-bar { height: 6px; background: #1a1a1a; position: relative; }
+  .token-bar .fill { height: 100%; background: linear-gradient(90deg, #4a9eff, #6fcf97); transition: width .3s; }
+
+  /* Models table */
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 12px; margin-top: 28px; }
+  .table-wrap { border: 2px solid #333; background: #0d0d0d; overflow-x: auto; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 12px 16px; font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: #555; border-bottom: 2px solid #222; }
+  td { padding: 12px 16px; font-size: 12px; color: #ccc; border-bottom: 1px solid #1a1a1a; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #141414; }
+
+  .loading { text-align: center; padding: 60px 0; font-size: 12px; color: #555; }
+
+  @media (max-width: 700px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  body.light { background: #fff; color: #000; }
+  body.light .stat-card, body.light .key-box, body.light .token-bar-wrap, 
+  body.light .table-wrap, body.light .sidebar, body.light .chat-box,
+  body.light .msg.assistant .answer-box, body.light .msg.assistant .thinking-box,
+  body.light .feature-card, body.light .pricing-card, body.light .auth-card,
+  body.light .model-badge span, body.light .code-block { background: #f5f5f5; border-color: #ccc; }
+  body.light .stat-card .val, body.light .stat-card .lbl, body.light .stat-card .sub { color: #333; }
+  body.light .stat-card .sub { border-color: #ddd; }
+  body.light .token-bar { background: #ddd; }
+  body.light .token-bar .fill { background: linear-gradient(90deg, #3b82f6, #22c55e); }
+  body.light th { color: #888; border-color: #ddd; }
+  body.light td { color: #444; border-color: #eee; }
+  body.light tr:hover td { background: #eee; }
+  body.light .key-box .key { color: #444; }
+  body.light .key-box .btn { background: #eee; color: #444; border-color: #ccc; }
+  body.light .key-box .btn:hover { background: #000; color: #fff; border-color: #000; }
+  body.light .logo span { color: #999; }
+  body.light .msg.user { border-color: #000; }
+  body.light input, body.light select, body.light textarea { border-color: #ccc; color: #000; }
+  body.light ::-webkit-scrollbar-thumb { background: #ccc; }
+  body.light .section-title { color: #999; }
+  body.light .sidebar .section-title { border-color: #ddd; }
+  body.light .sidebar .key-display { background: #eee; border-color: #ddd; color: #666; }
+
+
+  .theme-btn {
+    background: none; border: 2px solid #333; color: #888;
+    font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; padding: 8px 14px;
+  }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+  body.light .theme-btn { border-color: #ccc; color: #888; }
+  body.light .theme-btn:hover { border-color: #000; color: #000; }
+
+
+  .logo-icon { width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/DASHBOARD</span></div>
+    <nav>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="docs.html">Docs</a>
+      <a href="models.html">Models</a>
+      <a href="playground.html">Playground</a>
+      <a href="dashboard.html">Dashboard</a>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </nav>
+  </header>
+
+  <h1>Dashboard</h1>
+
+  <div class="key-box">
+    <div>
+      <div class="label">API Key</div>
+      <div class="key" id="apiKeyDisplay">---</div>
+    </div>
+    <button class="btn" onclick="copyKey()">Copy</button>
+  </div>
+
+  <div class="stat-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="val" id="sTokens">-</div>
+      <div class="lbl">Tokens used</div>
+      <div class="sub">of <span id="sTotal">50M</span> granted</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="sRequests">-</div>
+      <div class="lbl">Total requests</div>
+      <div class="sub"><span id="sWeekly">-</span> this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="sPrompt">-</div>
+      <div class="lbl">Prompt tokens</div>
+      <div class="sub"><span id="sCompletion">-</span> completion</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="sRemaining">-</div>
+      <div class="lbl">Remaining</div>
+      <div class="sub"><span id="sPct">-</span> of total</div>
+    </div>
+  </div>
+
+  <div class="token-bar-wrap">
+    <div class="label-row">
+      <span class="l">Token consumption</span>
+      <span class="r"><strong id="tbUsed">-</strong> used / <span id="tbTotal">50M</span></span>
+    </div>
+    <div class="token-bar">
+      <div class="fill" id="tbFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="section-title">Models</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Requests</th><th>Tokens</th></tr></thead>
+      <tbody id="modelBody">
+        <tr><td colspan="3" style="color:#555;text-align:center;padding:20px;font-size:11px;">No data yet</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var key = localStorage.getItem('syn_api_key');
+if (!key) { window.location.href = 'signin.html'; }
+
+document.getElementById('apiKeyDisplay').textContent = key;
+
+function copyKey() {
+  navigator.clipboard.writeText(key);
+  var btn = document.querySelector('.key-box .btn');
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+}
+
+document.getElementById('logoutBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  localStorage.removeItem('syn_api_key');
+  window.location.href = 'index.html';
+});
+
+function fmt(n) {
+  if (n >= 1000000) return Math.floor(n/10000)/100 + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+fetch('/api/dashboard/' + encodeURIComponent(key))
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.ok) { window.location.href = 'signin.html'; return; }
+
+    document.getElementById('sTokens').textContent = fmt(d.tokens_used);
+    document.getElementById('sTotal').textContent = fmt(d.tokens_granted);
+    document.getElementById('sRequests').textContent = d.requests;
+    document.getElementById('sWeekly').textContent = d.weekly_requests + ' req';
+    document.getElementById('sPrompt').textContent = fmt(d.prompt_tokens);
+    document.getElementById('sCompletion').textContent = fmt(d.completion_tokens) + ' tok';
+    document.getElementById('sRemaining').textContent = fmt(d.tokens_left);
+    var pct = d.tokens_granted > 0 ? (d.tokens_used / d.tokens_granted * 100).toFixed(1) : '0';
+    document.getElementById('sPct').textContent = pct + '%';
+
+    document.getElementById('tbUsed').textContent = fmt(d.tokens_used);
+    document.getElementById('tbTotal').textContent = fmt(d.tokens_granted);
+    document.getElementById('tbFill').style.width = Math.min(100, (d.tokens_used / d.tokens_granted) * 100) + '%';
+
+    var tbody = document.getElementById('modelBody');
+    if (d.models && d.models.length > 0) {
+      tbody.innerHTML = '';
+      d.models.forEach(function(m) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + m.name + '</td><td>' + m.requests + '</td><td>' + fmt(m.tokens) + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+  });
+</script>
+<script>
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  var isLight = b.classList.contains('light');
+  localStorage.setItem('synth-theme', isLight ? 'light' : 'dark');
+  var btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? 'Dark' : 'Light';
+}
+// Apply on load
+(function() {
+  if (localStorage.getItem('synth-theme') === 'light') {
+    document.body.classList.add('light');
+    var btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = 'Dark';
+  }
+})();
+</script>
+</body>
+</html>
