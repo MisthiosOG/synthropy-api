@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY — Sign up</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    color: #fff;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  body.light { background: #fff; color: #000; }
+
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    border: 2px solid #333;
+    padding: 48px 36px;
+  }
+  body.light .auth-card { border-color: #ccc; }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .logo span { color: #666; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    background: transparent;
+    border: 2px solid #333;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    margin-bottom: 20px;
+  }
+  body.light input { border-color: #ccc; color: #000; }
+  input:focus { border-color: #fff; }
+  body.light input:focus { border-color: #000; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .btn:hover { background: #fff; color: #000; }
+  body.light .btn { border-color: #000; color: #000; }
+  body.light .btn:hover { background: #000; color: #fff; }
+  .btn-primary { background: #fff; color: #000; border-color: #fff; }
+  .btn-primary:hover { background: #ccc; color: #000; border-color: #ccc; }
+  body.light .btn-primary { background: #000; color: #fff; border-color: #000; }
+  body.light .btn-primary:hover { background: #333; border-color: #333; }
+
+  .footer-text {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-top: 24px;
+  }
+  .footer-text a { color: #888; text-decoration: none; }
+  .footer-text a:hover { color: #fff; }
+  body.light .footer-text a:hover { color: #000; }
+
+  .error {
+    border: 2px solid #f00;
+    color: #f00;
+    padding: 10px 14px;
+    font-size: 12px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .theme-btn {
+    background: none; border: 2px solid #333; color: #888;
+    font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; padding: 8px 14px;
+  }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+  body.light .theme-btn { border-color: #ccc; color: #888; }
+  body.light .theme-btn:hover { border-color: #000; color: #000; }
+
+
+  .logo-icon { width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/API</span></div>
+
+  <div class="error" id="error"></div>
+
+  <form id="signupForm">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="min 8 characters" required>
+
+    <label for="confirm">Confirm password</label>
+    <input type="password" id="confirm" placeholder="repeat password" required>
+
+    <button type="submit" class="btn btn-primary">Create account</button>
+  </form>
+
+  <p class="footer-text">
+    Already have an account? <a href="signin.html">Sign in</a>
+  </p>
+</div>
+
+<script>
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
+  var confirm = document.getElementById('confirm').value;
+  var err = document.getElementById('error');
+
+  if (!email || !password || !confirm) {
+    err.textContent = 'Fill in all fields.'; err.style.display = 'block'; return;
+  }
+  if (password.length < 8) {
+    err.textContent = 'Password must be at least 8 characters.'; err.style.display = 'block'; return;
+  }
+  if (password !== confirm) {
+    err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return;
+  }
+
+  fetch('/api/signup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: email, password: password})
+  }).then(function(r) { return r.json().then(function(d) { return {status: r.status, body: d}; }); })
+  .then(function(res) {
+    if (res.status === 200) {
+      localStorage.setItem('syn_api_key', res.body.api_key);
+      window.location.href = '/dashboard.html';
+    } else {
+      err.textContent = res.body.detail || 'Signup failed';
+      err.style.display = 'block';
+    }
+  }).catch(function() {
+    err.textContent = 'Cannot reach server'; err.style.display = 'block';
+  });
+});
+</script>
+
+<script>
+// Apply saved theme on load
+(function() {
+  var t = localStorage.getItem('synth-theme');
+  if (t === 'light') document.body.classList.add('light');
+})();
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  var isLight = b.classList.contains('light');
+  localStorage.setItem('synth-theme', isLight ? 'light' : 'dark');
+  var btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? 'Dark' : 'Light';
+}
+</script>
+
+</body>
+</html>
