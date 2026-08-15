@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY — Docs</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    
+    
+    color: #fff;
+    line-height: 1.6;
+  }
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+
+  header {
+    border-bottom: 2px solid #333; padding: 24px 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .logo span { color: #666; }
+  .logo-icon { width: 32px; height: 32px; }
+  nav { display: flex; gap: 24px; align-items: center; }
+  nav a { color: #888; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  nav a:hover { color: #fff; }
+  .theme-btn { background: none; border: 2px solid #333; color: #888; font-family: inherit; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; cursor: pointer; padding: 10px 18px; }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+
+  /* ── Layout ── */
+  .layout { display: flex; gap: 32px; padding: 24px 0; }
+  .sidebar { width: 200px; flex-shrink: 0; }
+  .sidebar a {
+    display: block; padding: 6px 0; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; color: #555; text-decoration: none; border-bottom: 1px solid #1a1a1a;
+  }
+  .sidebar a:hover { color: #fff; }
+  .sidebar a.active { color: #fff; font-weight: 700; }
+  .content { flex: 1; min-width: 0; }
+
+  h1 { font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px; }
+
+  .cmd { color: #0f0; margin-bottom: 20px; font-size: 12px; }
+  .cmd .prompt { color: #666; }
+  .cmd .output { color: #bbb; margin-top: 4px; }
+
+  .section { margin-bottom: 32px; }
+  .section h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #888; margin-bottom: 12px; }
+  .section p { font-size: 12px; color: #999; margin-bottom: 10px; }
+  .section p strong { color: #ddd; }
+  .section a { color: #6ea8fe; }
+
+  .code-block {
+    background: #080808;
+    border: 2px solid #222;
+    padding: 14px 16px;
+    font-size: 11px;
+    color: #0f0;
+    overflow-x: auto;
+    margin: 12px 0;
+    position: relative;
+  }
+  .code-block .comment { color: #555; }
+  .code-block .copy-btn {
+    position: absolute; top: 6px; right: 6px;
+    background: transparent; border: 1px solid #333; color: #444;
+    font-family: inherit; font-size: 8px; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; padding: 3px 7px;
+  }
+  .code-block .copy-btn:hover { color: #fff; border-color: #fff; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 11px; }
+  th { text-align: left; padding: 8px 10px; color: #555; border-bottom: 2px solid #222; text-transform: uppercase; letter-spacing: .5px; font-size: 9px; }
+  td { padding: 8px 10px; color: #999; border-bottom: 1px solid #1a1a1a; }
+  td:first-child { color: #ddd; font-weight: 700; }
+
+  .info-box {
+    border: 2px solid #222; background: #080808;
+    padding: 12px 14px; margin: 12px 0;
+    font-size: 11px; color: #888;
+    border-left: 2px solid #6ea8fe;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #222; }
+
+  @media (max-width: 700px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; display: flex; gap: 12px; overflow-x: auto; }
+    .sidebar a { white-space: nowrap; border: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/DOCS</span></div>
+    <nav>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="docs.html">Docs</a>
+      <a href="models.html">Models</a>
+      <a href="playground.html">Playground</a>
+      <a href="dashboard.html">Dashboard</a>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <div class="sidebar">
+      <a href="#quickstart" class="active">Quickstart</a>
+      <a href="#auth">Authentication</a>
+      <a href="#api">API Reference</a>
+      <a href="#models">Models</a>
+      <a href="#limits">Rate Limits</a>
+    </div>
+
+    <div class="content">
+      <div class="cmd">
+        <span class="prompt">$</span> cat /docs/synthropy.md<br>
+        <span class="output">OpenAI-compatible inference API. No markup. 50M free tokens.</span>
+      </div>
+
+      <!-- Quickstart -->
+      <div class="section" id="quickstart">
+        <h2>> Quickstart</h2>
+        <p>Get your key and send a request in 3 steps.</p>
+
+        <div class="code-block">
+          <button class="copy-btn" onclick="copy('step1')">Copy</button>
+          <span class="comment"># Step 1: Sign up & get your API key</span><br>
+          <span class="comment"># Go to https://synthropy.gg/signup</span><br>
+          <br>
+          <span class="comment"># Step 2: List available models</span><br>
+          curl https://api.synthropy.gg/v1/models<br>
+          <br>
+          <span class="comment"># Step 3: Send a message</span><br>
+          curl https://api.synthropy.gg/v1/chat/completions \<br>
+          &nbsp;&nbsp;-H "Authorization: Bearer sk-syn-xxx" \<br>
+          &nbsp;&nbsp;-d '{"model":"deepseek-ai/DeepSeek-V4-Flash-0731","messages":[{"role":"user","content":"hello"}]}'
+        </div>
+      </div>
+
+      <!-- Auth -->
+      <div class="section" id="auth">
+        <h2>> Authentication</h2>
+        <p>All requests require a Bearer token in the <strong>Authorization</strong> header.</p>
+
+        <div class="code-block">
+          <button class="copy-btn" onclick="copy('auth')">Copy</button>
+          curl https://api.synthropy.gg/v1/chat/completions \<br>
+          &nbsp;&nbsp;-H "Authorization: Bearer sk-syn-xxx" \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"model":"deepseek-ai/DeepSeek-V4-Flash-0731","messages":[{"role":"user","content":"hello"}]}'
+        </div>
+
+        <div class="info-box">
+          Keys are tied to your account. 50M free tokens on signup. Track usage from the dashboard.
+        </div>
+      </div>
+
+      <!-- API -->
+      <div class="section" id="api">
+        <h2>> API Reference</h2>
+        <p>Base URL: <strong>https://api.synthropy.gg/v1</strong></p>
+
+        <p style="margin-top:16px;"><strong>POST /v1/chat/completions</strong></p>
+        <table>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td>model</td><td>string</td><td>Model ID from /v1/models</td></tr>
+          <tr><td>messages</td><td>array</td><td>Message objects with role + content</td></tr>
+          <tr><td>temperature</td><td>number</td><td>0.0 - 2.0 (default 0.7)</td></tr>
+          <tr><td>max_tokens</td><td>int</td><td>Max tokens (default 250000)</td></tr>
+          <tr><td>stream</td><td>bool</td><td>Streaming response (default false)</td></tr>
+        </table>
+
+        <p style="margin-top:16px;"><strong>Response</strong></p>
+        <div class="code-block">
+          <span class="comment"># Response format</span><br>
+          {"id":"chatcmpl-x","object":"chat.completion",<br>
+          &nbsp;&nbsp;"choices":[{"message":{"role":"assistant","content":"Hello!"}}],<br>
+          &nbsp;&nbsp;"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+        </div>
+      </div>
+
+      <!-- Models -->
+      <div class="section" id="models">
+        <h2>> Models</h2>
+        <table>
+          <tr><th>Model</th><th>Context</th><th>API ID</th></tr>
+          <tr><td>Synthropy-V1</td><td>1.0M</td><td>synthropy-v1 (enhanced)</td></tr>
+          <tr><td>DeepSeek-V4-Flash</td><td>1.0M</td><td>deepseek-ai/DeepSeek-V4-Flash-0731</td></tr>
+          <tr><td>Kimi K2.6</td><td>256K</td><td>moonshotai/Kimi-K2.6</td></tr>
+          <tr><td>MiniMax M2.7</td><td>200K</td><td>MiniMaxAI/MiniMax-M2.7</td></tr>
+        </table>
+      </div>
+
+      <!-- Limits -->
+      <div class="section" id="limits">
+        <h2>> Rate Limits</h2>
+        <table>
+          <tr><th>Tier</th><th>Limit</th></tr>
+          <tr><td>Free</td><td>100 req/min</td></tr>
+          <tr><td>Paid</td><td>Unlimited (coming soon)</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() { if (localStorage.getItem('synth-theme') === 'light') document.body.classList.add('light'); })();
+function toggleTheme() {
+  var b = document.body; b.classList.toggle('light');
+  localStorage.setItem('synth-theme', b.classList.contains('light') ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = b.classList.contains('light') ? 'Dark' : 'Light';
+}
+function copy(id) {
+  var t = {
+    step1: '# Step 1: Sign up\n# https://synthropy.gg/signup\n\n# Step 2: List models\ncurl https://api.synthropy.gg/v1/models\n\n# Step 3: Chat\ncurl https://api.synthropy.gg/v1/chat/completions \\\n  -H "Authorization: Bearer sk-syn-xxx" \\\n  -d \'{"model":"deepseek-ai/DeepSeek-V4-Flash-0731","messages":[{"role":"user","content":"hello"}]}\'',
+    auth: 'curl https://api.synthropy.gg/v1/chat/completions \\\n  -H "Authorization: Bearer sk-syn-xxx" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"model":"deepseek-ai/DeepSeek-V4-Flash-0731","messages":[{"role":"user","content":"hello"}]}\''
+  };
+  navigator.clipboard.writeText(t[id]);
+  var btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+}
+</script>
+</body>
+</html>
