@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    color: #fff;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background .2s, color .2s;
+  }
+  body.light {
+    background: #fff;
+    color: #000;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 2px solid #333;
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  body.light header { border-color: #ccc; }
+  .logo { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .logo span { color: #666; }
+  nav { display: flex; gap: 32px; align-items: center; }
+  nav a { color: #888; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  nav a:hover { color: #fff; }
+  body.light nav a { color: #888; }
+  body.light nav a:hover { color: #000; }
+
+  .theme-btn {
+    background: none;
+    border: 2px solid #333;
+    color: #888;
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    cursor: pointer;
+    padding: 8px 14px;
+    transition: none;
+  }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+  body.light .theme-btn { border-color: #ccc; color: #888; }
+  body.light .theme-btn:hover { border-color: #000; color: #000; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 80px 0 60px;
+    border-bottom: 2px solid #333;
+  }
+  body.light .hero { border-color: #ccc; }
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    line-height: 1.05;
+    margin-bottom: 24px;
+  }
+  .hero h1 span { color: #666; }
+  .hero p { font-size: 15px; color: #888; max-width: 640px; margin-bottom: 48px; }
+  body.light .hero p { color: #666; }
+  .hero .stats { display: flex; gap: 64px; margin-bottom: 48px; }
+  .hero .stat { }
+  .hero .stat-value { font-size: 28px; font-weight: 700; }
+  .hero .stat-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-block;
+    padding: 14px 32px;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:hover { background: #fff; color: #000; }
+  body.light .btn { border-color: #000; color: #000; }
+  body.light .btn:hover { background: #000; color: #fff; }
+  .btn-primary { background: #fff; color: #000; border-color: #fff; }
+  .btn-primary:hover { background: #ccc; color: #000; border-color: #ccc; }
+  body.light .btn-primary { background: #000; color: #fff; border-color: #000; }
+  body.light .btn-primary:hover { background: #333; border-color: #333; }
+  .btn-group { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  /* ── Features ── */
+  .features {
+    padding: 60px 0;
+    border-bottom: 2px solid #333;
+  }
+  body.light .features { border-color: #ccc; }
+  .features h2 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 48px;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .feature-card {
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 28px;
+  }
+  body.light .feature-card { border-color: #ccc; }
+  .feature-card h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
+  .feature-card p { font-size: 13px; color: #888; line-height: 1.6; }
+  body.light .feature-card p { color: #666; }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #111;
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 20px 24px;
+    font-size: 12px;
+    color: #0f0;
+    overflow-x: auto;
+    margin: 40px 0;
+  }
+  body.light .code-block { background: #f5f5f5; border-color: #ccc; color: #070; }
+  .code-block .comment { color: #666; }
+  body.light .code-block .comment { color: #999; }
+
+  /* ── Pricing ── */
+  .pricing {
+    padding: 60px 0;
+    border-bottom: 2px solid #333;
+  }
+  body.light .pricing { border-color: #ccc; }
+  .pricing h2 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 48px;
+  }
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .pricing-card {
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 40px 32px;
+  }
+  body.light .pricing-card { border-color: #ccc; }
+  .pricing-card.featured { border-color: #fff; }
+  body.light .pricing-card.featured { border-color: #000; }
+  .pricing-card .plan { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .pricing-card .price { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+  .pricing-card .period { font-size: 12px; color: #666; margin-bottom: 24px; }
+  .pricing-card ul { list-style: none; padding: 0; margin-bottom: 28px; }
+  .pricing-card ul li { font-size: 13px; color: #888; padding: 8px 0; border-bottom: 1px solid #222; }
+  .pricing-card ul li:last-child { border-bottom: none; }
+  .pricing-card ul li::before { content: '> '; color: #fff; }
+  body.light .pricing-card ul li { color: #666; border-color: #eee; }
+  body.light .pricing-card ul li::before { color: #000; }
+
+  /* ── Footer ── */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    font-size: 11px;
+    color: #555;
+  }
+  footer a { color: #777; text-decoration: none; }
+  footer a:hover { color: #fff; }
+  body.light footer a:hover { color: #000; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 32px; }
+    .hero .stats { flex-direction: column; gap: 24px; }
+    header { flex-direction: column; gap: 24px; align-items: flex-start; }
+  }
+
+  .logo-icon { width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<header class="container">
+  <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/API</span></div>
+  <nav>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="docs.html">Docs</a>
+      <a href="models.html">Models</a>
+      <a href="playground.html">Playground</a>
+      <a href="dashboard.html">Dashboard</a>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </nav>
+</header>
+
+<section class="hero container">
+  <h1>AI INFERENCE<br><span>FOR EVERYONE</span></h1>
+  <p>Open models. Zero markup. Pay only what the API costs — no hidden fees, no corporate tax. First 50M tokens free.</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Models</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">$0.00</div>
+      <div class="stat-label">Starting price</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">50M</div>
+      <div class="stat-label">Free tokens</div>
+    </div>
+  </div>
+  <div class="btn-group">
+    <a href="signup.html" class="btn btn-primary">Get API key</a>
+    <a href="docs.html" class="btn">Read docs</a>
+  </div>
+</section>
+
+<section class="features container" id="features">
+  <h2>Features</h2>
+  <div class="grid">
+    <div class="feature-card">
+      <h3>Open models</h3>
+      <p>DeepSeek-V4-Flash, MiniMax-M2.7, Kimi-K2.6 — all the best open-source models, one API.</p>
+    </div>
+    <div class="feature-card">
+      <h3>No markup</h3>
+      <p>You pay exactly what the provider charges. No middleman fee, no upsell.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Zero data retention</h3>
+      <p>We don't log your prompts or responses. Your data stays yours.</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <span class="comment"># One API key, all models</span><br>
+    curl https://api.synthropy.gg/v1/chat/completions \<br>
+    &nbsp;&nbsp;-H "Authorization: Bearer sk-syn-xxx" \<br>
+    &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+    &nbsp;&nbsp;-d '{<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;"model": "deepseek-v4",<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;"messages": [{"role": "user", "content": "hello"}]<br>
+    &nbsp;&nbsp;}'
+  </div>
+</section>
+
+<section class="pricing container" id="pricing">
+  <h2>Pricing</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card featured">
+      <div class="plan">Free</div>
+      <div class="price">$0</div>
+      <div class="period">First 50M tokens</div>
+      <ul>
+        <li>All open models</li>
+        <li>50M tokens free</li>
+        <li>Rate limit: 100 req/min</li>
+        <li>Community support</li>
+      </ul>
+      <a href="signup.html" class="btn btn-primary">Get started</a>
+    </div>
+    <div class="pricing-card">
+      <div class="plan">Pay as you go</div>
+      <div class="price">$0.10</div>
+      <div class="period">Per 1M tokens</div>
+      <ul>
+        <li>All models + priority</li>
+        <li>No rate limit</li>
+        <li>Priority support</li>
+        <li>No data logging</li>
+      </ul>
+      <span class="btn" style="opacity:0.4;cursor:default;">Coming soon</span>
+    </div>
+  </div>
+</section>
+
+<footer class="container">
+  <p>SYNTHROPY — <a href="https://github.com/MisthiosOG">MisthiosOG</a></p>
+</footer>
+
+<script>
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  document.getElementById('themeBtn').textContent = b.classList.contains('light') ? 'Dark' : 'Light';
+}
+// Load saved preference
+if (localStorage.getItem('synth-theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('themeBtn').textContent = 'Dark';
+}
+// Save preference on toggle
+document.addEventListener('DOMContentLoaded', function() {
+  var orig = toggleTheme;
+  toggleTheme = function() {
+    orig();
+    localStorage.setItem('synth-theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  };
+});
+</script>
+
+</body>
+<script>
+(function() {
+  var t = localStorage.getItem('synth-theme');
+  if (t === 'light') document.body.classList.add('light');
+  var key = localStorage.getItem('syn_api_key');
+  if (key) {
+    document.getElementById('navSignin').style.display = 'none';
+    document.getElementById('navDashboard').style.display = 'inline';
+  }
+})();
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  localStorage.setItem('synth-theme', b.classList.contains('light') ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = b.classList.contains('light') ? 'Dark' : 'Light';
+}
+</script>
+</html>
