@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNTHROPY — Models</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 17px; }
+  body {
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+    background: #000;
+    
+    
+    color: #fff;
+    line-height: 1.5;
+  }
+  .container { max-width: 1600px; margin: 0 auto; padding: 0 48px; }
+
+  header {
+    border-bottom: 2px solid #333;
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+  .logo span { color: #666; }
+  .logo-icon { width: 32px; height: 32px; }
+  nav { display: flex; gap: 24px; align-items: center; }
+  nav a { color: #888; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  nav a:hover { color: #fff; }
+  .theme-btn {
+    background: none; border: 2px solid #333; color: #888;
+    font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .5px; cursor: pointer; padding: 8px 14px;
+  }
+  .theme-btn:hover { color: #fff; border-color: #fff; }
+  body.light .theme-btn { border-color: #ccc; color: #888; }
+  body.light .theme-btn:hover { border-color: #000; color: #000; }
+
+  h1 { font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 40px 0 24px; }
+
+  .model-list { display: flex; flex-direction: column; gap: 24px; margin-bottom: 48px; }
+
+  .model-card {
+    border: 2px solid #333;
+    background: #0d0d0d;
+    padding: 24px 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .model-card .info { flex: 1; }
+  .model-card .name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .model-card .provider { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+  .model-card .desc { font-size: 12px; color: #888; line-height: 1.6; margin-bottom: 14px; }
+  .model-card .meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .model-card .meta span {
+    border: 1px solid #333;
+    padding: 4px 10px;
+    font-size: 10px;
+    color: #888;
+  }
+  .model-card .context {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .model-card .context .val { font-size: 22px; font-weight: 700; }
+  .model-card .context .lbl { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+  .model-card .model-id { font-size: 10px; color: #555; margin-top: 10px; font-style: italic; display: flex; align-items: center; gap: 6px; }
+  .copy-id-btn { background: transparent; border: 1px solid #333; color: #555; font-family: inherit; font-size: 8px; text-transform: uppercase; letter-spacing: .5px; cursor: pointer; padding: 4px 8px; }
+  .copy-id-btn:hover { color: #fff; border-color: #fff; }
+  .copy-id-btn.abs { position: absolute; bottom: 12px; right: 12px; }
+
+  .code-block {
+    background: #0d0d0d;
+    border: 2px solid #333;
+    padding: 20px 24px;
+    font-size: 12px;
+    color: #0f0;
+    overflow-x: auto;
+    margin-bottom: 48px;
+    
+  }
+  .code-block .comment { color: #666; }
+  .code-block .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: 1px solid #333;
+    color: #555;
+    font-family: inherit;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    cursor: pointer;
+    padding: 5px 10px;
+  }
+  .code-block .copy-btn:hover { color: #fff; border-color: #fff; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #333; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+  @media (max-width: 700px) {
+    .model-card { flex-direction: column; }
+    .model-card .context { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><img src="icon.png" class="logo-icon">SYNTHROPY<span>/MODELS</span></div>
+    <nav>
+      <a href="index.html#features">Features</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="docs.html">Docs</a>
+      <a href="models.html">Models</a>
+      <a href="playground.html">Playground</a>
+      <a href="dashboard.html">Dashboard</a>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </nav>
+  </header>
+
+  <h1>Models</h1>
+
+  <div class="model-list">
+        <!-- Synthropy-Direct -->
+    <div class="model-card" style="border-color:#ef4444;">
+      <div class="info">
+        <div class="name">Synthropy-Direct</div>
+        <div class="provider">by Synthropy Team</div>
+        <div class="desc">Direct mode with minimal refusals. Answers thoroughly without unnecessary warnings or disclaimers. Same DeepSeek V4 Flash engine with a more permissive system prompt.</div>
+        <div class="meta">
+          <span>Direct</span><span>Minimal refusal</span><span>Tools</span>
+        </div>
+        <div class="model-id">ID: synthropy-direct</div>
+      
+      </div>
+      <div class="context"><div class="val">1.0M</div><div class="lbl">Context</div></div>
+    </div>
+
+    <!-- Synthropy-V1 -->
+    <div class="model-card" style="border-color:#6ea8fe; position:relative;">
+      <div class="info">
+        <div class="name">Synthropy-V1</div>
+        <div class="provider">by Synthropy Team</div>
+        <div class="desc">All-in-one enhanced model with multiple built-in skills: humanizer, code reviewer, debugger, README generator, planner, and explainer. Automatically detects your intent and applies the right mode. Powered by DeepSeek V4 Flash.</div>
+        <div class="meta">
+          <span>Humanizer</span><span>Code Review</span><span>Debugger</span><span>Docs</span><span>Planning</span>
+        </div>
+        <div class="model-id">ID: synthropy-v1</div>
+      
+      </div>
+      <div class="context"><div class="val">1.0M</div><div class="lbl">Context</div></div>
+    </div>
+
+    <!-- DeepSeek V4 Flash -->
+    <div class="model-card">
+      <div class="info">
+        <div class="name">DeepSeek-V4-Flash</div>
+        <div class="provider">DeepSeek</div>
+        <div class="desc">High-performance reasoning model with 1M context window. Strong at code generation, mathematical reasoning, and complex problem-solving. Optimized for speed and cost efficiency.</div>
+        <div class="meta">
+          <span>Reasoning</span>
+          <span>Tools</span>
+          <span>Vision</span>
+          <span>Code</span>
+        </div>
+        <div class="model-id">ID: deepseek-ai/DeepSeek-V4-Flash-0731</div>
+      
+      </div>
+      <div class="context">
+        <div class="val">1.0M</div>
+        <div class="lbl">Context</div>
+      </div>
+    </div>
+
+    <!-- Kimi K2.6 -->
+    <div class="model-card">
+      <div class="info">
+        <div class="name">Kimi K2.6</div>
+        <div class="provider">Moonshot AI</div>
+        <div class="desc">Advanced language model by Moonshot AI with 256K context. Excels at long-form content processing, research analysis, and document understanding. Strong reasoning capabilities with tool use support.</div>
+        <div class="meta">
+          <span>Reasoning</span>
+          <span>Tools</span>
+          <span>Vision</span>
+          <span>Long context</span>
+        </div>
+        <div class="model-id">ID: moonshotai/Kimi-K2.6</div>
+      
+      </div>
+      <div class="context">
+        <div class="val">256K</div>
+        <div class="lbl">Context</div>
+      </div>
+    </div>
+
+    <!-- MiniMax M2.7 -->
+    <div class="model-card">
+      <div class="info">
+        <div class="name">MiniMax M2.7</div>
+        <div class="provider">MiniMax</div>
+        <div class="desc">Efficient and capable model from MiniMax with 200K context. Good balance of performance and cost. Suitable for general-purpose tasks, chat, and content generation with tool integration.</div>
+        <div class="meta">
+          <span>Reasoning</span>
+          <span>Tools</span>
+          <span>Vision</span>
+        </div>
+        <div class="model-id">ID: MiniMaxAI/MiniMax-M2.7</div>
+      
+      </div>
+      <div class="context">
+        <div class="val">200K</div>
+        <div class="lbl">Context</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode()">Copy</button>
+    <span class="comment"># Example: switch models via API</span><br>
+    curl https://api.synthropy.gg/v1/chat/completions \<br>
+    &nbsp;&nbsp;-H "Authorization: Bearer sk-syn-xxx" \<br>
+    &nbsp;&nbsp;-d '{"model": "deepseek-ai/DeepSeek-V4-Flash-0731", "messages": [{"role": "user", "content": "hello"}]}'
+  </div>
+</div>
+
+<script>
+(function() {
+  if (localStorage.getItem('synth-theme') === 'light') document.body.classList.add('light');
+})();
+function copyId(id) {
+  navigator.clipboard.writeText(id);
+  var btn = event.target;
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy ID'; }, 1500);
+}
+// Add copy buttons to all model cards
+(function() {
+  var ids = [
+    'synthropy-direct', 'synthropy-v1',
+    'deepseek-ai/DeepSeek-V4-Flash-0731',
+    'moonshotai/Kimi-K2.6', 'MiniMaxAI/MiniMax-M2.7'
+  ];
+  var cards = document.querySelectorAll('.model-card');
+  ids.forEach(function(id, i) {
+    if (cards[i]) {
+      var btn = document.createElement('button');
+      btn.className = 'copy-id-btn';
+      btn.textContent = 'Copy ID';
+      btn.onclick = function() { copyId(id); };
+      cards[i].appendChild(btn);
+    }
+  });
+})();
+function toggleTheme() {
+  var b = document.body;
+  b.classList.toggle('light');
+  localStorage.setItem('synth-theme', b.classList.contains('light') ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = b.classList.contains('light') ? 'Dark' : 'Light';
+}
+function copyCode() {
+  var text = 'curl https://api.synthropy.gg/v1/chat/completions \\\n  -H "Authorization: Bearer sk-syn-xxx" \\\n  -d \'{"model": "deepseek-ai/DeepSeek-V4-Flash-0731", "messages": [{"role": "user", "content": "hello"}]}\'';
+  navigator.clipboard.writeText(text);
+  var btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+}
+</script>
+</body>
+</html>
