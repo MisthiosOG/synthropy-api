@@ -88,8 +88,8 @@ def signin(req: LoginReq):
         raise HTTPException(401, "Invalid email or password")
     return {"ok": True, "api_key": row["api_key"]}
 
-@app.get("/api/dashboard/{api_key}")
-def dashboard(api_key: str):
+@app.get("/api/dashboard")
+def dashboard(api_key: str = ""):
     con = get_db()
     row = con.execute(
         "SELECT email, tokens_granted, tokens_used, requests, created_at FROM users WHERE api_key=?",
