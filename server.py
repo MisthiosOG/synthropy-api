@@ -370,6 +370,15 @@ def list_users():
     rows = con.execute("SELECT email, api_key, tokens_used, tokens_granted, created_at FROM users ORDER BY created_at DESC").fetchall()
     return {"users": [{"email": r["email"], "api_key": r["api_key"], "tokens_used": r["tokens_used"], "tokens_granted": r["tokens_granted"]} for r in rows]}
 
+@app.get("/api/leaderboard")
+def leaderboard():
+    con = get_db()
+    rows = con.execute(
+        "SELECT model, COUNT(*) as requests, SUM(total_tokens) as tokens, SUM(prompt_tokens) as prompt, SUM(completion_tokens) as completion "
+        "FROM usage_log GROUP BY model ORDER BY tokens DESC"
+    ).fetchall()
+    return {"models": [{"name": r["model"], "requests": r["requests"], "tokens": r["tokens"], "prompt_tokens": r["prompt_tokens"], "completion_tokens": r["completion_tokens"]} for r in rows]}
+
 # Serve static HTML files (after API routes so they take priority)
 from fastapi.staticfiles import StaticFiles
 app.mount("/", StaticFiles(directory=Path(__file__).parent, html=True), name="static")
