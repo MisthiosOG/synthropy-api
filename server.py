@@ -60,26 +60,15 @@ class DahlKeyReq(BaseModel):
     dahl_api_key: str
 
 @app.post("/api/signup")
-def signup(req: SignupReq, request: Request):
+def signup(req: SignupReq):
     if len(req.password) < 8:
         raise HTTPException(400, "Password must be at least 8 characters")
-    
-    # Get client IP
-    ip = request.headers.get("x-forwarded-for", request.client.host).split(",")[0].strip()
-    
     con = get_db()
-    
-    # Check if IP already used
-    existing = con.execute("SELECT count FROM signup_ips WHERE ip=?", (ip,)).fetchone()
-    if existing:
-        raise HTTPException(400, "Only one account per IP address allowed")
-    
     try:
         api_key = gen_key()
         con.execute(
             "INSERT INTO users (email, password, api_key, tokens_granted, tokens_used, requests, created_at) VALUES (?, ?, ?, 50000000, 0, 0, datetime('now'))",
             (req.email, hash_pw(req.password), api_key))
-        con.execute("INSERT INTO signup_ips (ip, count, created_at) VALUES (?, 1, datetime('now'))", (ip,))
         con.commit()
         return {"ok": True, "api_key": api_key}
     except sqlite3.IntegrityError:
