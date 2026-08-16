@@ -266,10 +266,10 @@ def chat(req: ChatReq):
     if not user:
         raise HTTPException(401, "Invalid API key")
 
-    # Tier-based model access
-    FREE_MODELS = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7"]
-    BASIC_MODELS = FREE_MODELS + ["moonshotai/Kimi-K2.6", "synthropy-direct"]
-    PRO_MODELS = BASIC_MODELS + ["synthropy-v1"]
+    # Tier-based model access (currently all free)
+    FREE_MODELS = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7", "moonshotai/Kimi-K2.6", "synthropy-direct", "synthropy-v1"]
+    BASIC_MODELS = FREE_MODELS
+    PRO_MODELS = FREE_MODELS
 
     tier = user["tier"]
     if tier == "free" and req.model not in FREE_MODELS:
