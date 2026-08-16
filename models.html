@@ -74,6 +74,17 @@
   .copy-id-btn:hover { color: #fff; border-color: #fff; }
   .copy-id-btn.abs { position: absolute; bottom: 12px; right: 12px; }
 
+  .leaderboard { border: 2px solid #333; background: #0d0d0d; margin-bottom: 32px; }
+  .leaderboard h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 16px 20px; border-bottom: 2px solid #333; }
+  .leaderboard table { width: 100%; border-collapse: collapse; }
+  .leaderboard th { text-align: left; padding: 10px 20px; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: #555; border-bottom: 1px solid #222; }
+  .leaderboard td { padding: 10px 20px; font-size: 12px; color: #bbb; border-bottom: 1px solid #1a1a1a; }
+  .leaderboard tr:hover td { background: #0a0a0a; }
+  .leaderboard .rank { color: #555; font-weight: 700; width: 30px; }
+  .leaderboard .rank-1 { color: #ffd700; }
+  .leaderboard .rank-2 { color: #c0c0c0; }
+  .leaderboard .rank-3 { color: #cd7f32; }
+
   .code-block {
     background: #0d0d0d;
     border: 2px solid #333;
@@ -223,12 +234,14 @@
     </div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-btn" onclick="copyCode()">Copy</button>
-    <span class="comment"># Example: switch models via API</span><br>
-    curl https://api.synthropy.gg/v1/chat/completions \<br>
-    &nbsp;&nbsp;-H "Authorization: Bearer sk-syn-xxx" \<br>
-    &nbsp;&nbsp;-d '{"model": "deepseek-ai/DeepSeek-V4-Flash-0731", "messages": [{"role": "user", "content": "hello"}]}'
+  <div class="leaderboard">
+    <h2>> Leaderboard</h2>
+    <table>
+      <thead><tr><th>#</th><th>Model</th><th>Requests</th><th>Tokens Used</th></tr></thead>
+      <tbody id="lbBody">
+        <tr><td colspan="4" style="text-align:center;color:#555;padding:20px;font-size:11px;">Loading...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -273,6 +286,24 @@ function copyCode() {
   btn.textContent = 'Copied!';
   setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
 }
+
+// Load leaderboard
+fetch('/api/leaderboard').then(function(r) { return r.json(); }).then(function(d) {
+  var tbody = document.getElementById('lbBody');
+  tbody.innerHTML = '';
+  if (!d.models || d.models.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#555;padding:20px;font-size:11px;">No data yet</td></tr>';
+    return;
+  }
+  d.models.forEach(function(m, i) {
+    var rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="rank ' + rankClass + '">' + (i+1) + '</td><td>' + m.name + '</td><td>' + m.requests + '</td><td>' + fmt(m.tokens) + '</td>';
+    tbody.appendChild(tr);
+  });
+}).catch(function() {
+  document.getElementById('lbBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#555;padding:20px;font-size:11px;">Failed to load</td></tr>';
+});
 </script>
 </body>
 </html>
