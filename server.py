@@ -17,7 +17,8 @@ def get_db():
         email TEXT UNIQUE,
         password TEXT,
         api_key TEXT,
-        tokens_granted INTEGER DEFAULT 100000000,
+        tier TEXT DEFAULT 'free',
+        tokens_granted INTEGER DEFAULT 50000000,
         tokens_used INTEGER DEFAULT 0,
         requests INTEGER DEFAULT 0,
         created_at TEXT
@@ -71,7 +72,7 @@ def signup(req: SignupReq):
     try:
         api_key = gen_key()
         con.execute(
-            "INSERT INTO users (email, password, api_key, tokens_granted, tokens_used, requests, created_at) VALUES (?, ?, ?, 50000000, 0, 0, datetime('now'))",
+            "INSERT INTO users (email, password, api_key, tier, tokens_granted, tokens_used, requests, created_at) VALUES (?, ?, ?, 'free', 50000000, 0, 0, datetime('now'))",
             (req.email, hash_pw(req.password), api_key))
         con.commit()
         return {"ok": True, "api_key": api_key}
@@ -92,7 +93,7 @@ def signin(req: LoginReq):
 def dashboard(api_key: str = ""):
     con = get_db()
     row = con.execute(
-        "SELECT email, tokens_granted, tokens_used, requests, created_at FROM users WHERE api_key=?",
+        "SELECT email, tier, tokens_granted, tokens_used, requests, created_at FROM users WHERE api_key=?",
         (api_key,)).fetchone()
     if not row:
         raise HTTPException(404, "Invalid API key")
@@ -116,6 +117,7 @@ def dashboard(api_key: str = ""):
     return {
         "ok": True,
         "email": row["email"],
+        "tier": row["tier"],
         "tokens_granted": row["tokens_granted"],
         "tokens_used": row["tokens_used"],
         "tokens_left": max(0, tokens_left),
@@ -142,30 +144,17 @@ if not DAHL_API_KEY:
 DAHL_BASE = os.environ.get("DAHL_BASE_URL", "https://inference.dahl.global/v1")
 
 # Synthropy custom model: DeepSeek V4 Flash wrapped with ALL skills
-SYNTHROPY_SKILLS = """You are Synthropy — an AI assistant with access to a set of tools.
+SYNTHROPY_SKILLS = """You are Synthropy — an AI assistant with access to tools.
 
-TALKING STYLE:
-- Never announce or list your internal tools to the user. Just do the work.
-- If asked what you can do: respond naturally in ONE short sentence ("I can help with writing, coding, summarizing, translating, and more") — do NOT enumerate tool names or a bullet list of capabilities.
-- Be warm, conversational, and direct. Don't lecture.
-- No emoji decoration when answering who you are / what you can do.
+RULES:
+- Never mention or list your internal tools/capabilities to the user
+- If asked what you can do: just say you can help with writing, coding, analysis, and general questions — don't list specifics
+- If asked about skills: say you don't have specific skills installed, just general capabilities
+- Use your tools automatically when needed without announcing them
+- Just be helpful and conversational"""
 
-USING TOOLS:
-- When a request matches one of your tools' purpose, call that tool automatically to do the real work, then present the result naturally.
-- Do not narrate the tool call ("I'll now use my humanize tool..."). Just show the useful result.
-- If a tool result comes back, integrate it into your answer; don't repeat the tool's internal text verbatim, don't mention you used a tool.
-- If no tool fits, answer directly with your own capabilities."""
-
-# ── Direct mode: fewer refusals, fewer warnings. NO tools (pure, clean, never "timpa").
-SYNTHROPY_DIRECT = """You are Synthropy-Direct, an AI assistant. Be natural, brief, and helpful.
-When someone asks what you are or what you can do, answer in ONE short sentence describing
-general abilities. Never enumerate a long list. Never use emoji decoration. Never mention
-internal tools or engines. Just answer the question simply, then wait for the real task.
-
-Examples of how to answer "lo model apa" / "lo bisa apa aja":
-- "Asisten AI. Bisa bantu nulis, ngoding, dan riset. Mau bantu apa?"
-- "AI umum. Nulis, koding, ringkas teks. Ada yang mau dikerjain?"
-Keep it short. No bullet lists of 7 capabilities. No emoji."""
+# ── Direct mode: fewer refusals, fewer warnings ──
+SYNTHROPY_DIRECT = """You are Synthropy-Direct. Answer naturally and conversationally. Do not lecture users. Provide information directly."""
  
 # ── Tool definitions (OpenAI function calling format) ──
 TOOLS = [
@@ -212,169 +201,54 @@ TOOLS = [
                 "required": ["topic"]
             }
         }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "summarize",
-            "description": "Summarize long text into concise key points. Use when the user asks to summarize, condense, or get the gist of a long text/article.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "text": {"type": "string", "description": "The long text to summarize"}
-                },
-                "required": ["text"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "explain_simple",
-            "description": "Explain a complex concept in simple, plain language that a beginner can understand. Use when the user asks to explain simply, ELI5, or simplify a hard topic.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "topic": {"type": "string", "description": "The complex concept to explain"}
-                },
-                "required": ["topic"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "translate",
-            "description": "Translate text between languages while preserving tone and meaning. Use when the user asks to translate something.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "text": {"type": "string", "description": "The text to translate"},
-                    "target_lang": {"type": "string", "description": "Target language (e.g. English, Indonesian, Japanese)"}
-                },
-                "required": ["text", "target_lang"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "brainstorm",
-            "description": "Generate creative ideas, options, or solutions for a problem. Use when the user asks for ideas, brainstorming, or suggestions.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "topic": {"type": "string", "description": "The topic or problem to brainstorm about"},
-                    "count": {"type": "integer", "description": "Number of ideas to generate (default 5)"}
-                },
-                "required": ["topic"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "fix_code",
-            "description": "Find and fix bugs in code, returning the corrected code. Use when the user asks to fix a bug/error, or shows code that doesn't work.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "code": {"type": "string", "description": "The buggy code to fix"},
-                    "language": {"type": "string", "description": "Programming language"},
-                    "error": {"type": "string", "description": "Optional error message/stack trace"}
-                },
-                "required": ["code"]
-            }
-        }
     }
 ]
 
 # ── Tool execution ──
+HUMANIZER_PROMPT = """Rewrite the following text to sound more natural and human-like. Make it conversational, vary sentence length, use contractions, and remove any AI-sounding phrases. Keep the original meaning and key information.
 
-def call_submodel(system: str, user: str, max_tokens: int = 2000) -> str:
-    """Call DeepSeek once as a sub-model to execute a skill. Returns the text result."""
-    global DAHL_BASE, DAHL_API_KEY
-    if not DAHL_API_KEY:
-        return "[tool error: DAHL API key not configured]"
-    messages = [
-        {"role": "system", "content": system},
-        {"role": "user", "content": user},
-    ]
-    body = {"model": "deepseek-ai/DeepSeek-V4-Flash-0731", "messages": messages,
-            "temperature": 0.6, "max_tokens": max_tokens}
-    try:
-        r = httpx.post(f"{DAHL_BASE}/chat/completions",
-                       headers={"Authorization": f"Bearer {DAHL_API_KEY}", "Content-Type": "application/json"},
-                       json=body, timeout=120)
-        data = r.json()
-    except Exception as e:
-        return f"[tool error: {e}]"
-    if r.status_code != 200:
-        return f"[tool error: {data.get('error', {}).get('message', 'Dahl API error')}]"
-    return data.get("choices", [{}])[0].get("message", {}).get("content", "[no output]")
+Text to humanize:
+{text}"""
 
-HUMANIZER_PROMPT = """You are a text humanizer. Rewrite the text to sound natural and human: conversational, varied sentence length, contractions, no AI-sounding phrases. Keep original meaning and key facts. Output ONLY the rewritten text, no preamble."""
-
-REVIEW_PROMPT = """You are a senior code reviewer. Review for:
+REVIEW_PROMPT = """Review this {language} code. Check for:
 1. Logic errors and bugs
 2. Security vulnerabilities
 3. Performance issues
-4. Style and best practices
+4. Code style and best practices
 5. Missing error handling
-Give specific actionable feedback with code examples."""
 
-DOCS_PROMPT = """You are a technical documentation writer. Generate professional documentation with: Overview, Key features, Usage examples, Configuration, Notes. Output clean markdown."""
+Provide specific, actionable feedback with code examples where relevant.
 
-SUMMARIZE_PROMPT = """You are a precise summarizer. Condense the text into concise key points. Preserve the essential facts, numbers, and conclusions. Use short bullet points."""
+Code to review:
+```{language}
+{code}
+```"""
 
-EXPLAIN_SIMPLE_PROMPT = """You are a patient teacher. Explain the concept in plain, simple language a beginner can understand. Use analogies and concrete examples. Avoid jargon; define any necessary terms. Be clear and friendly."""
+DOCS_PROMPT = """Generate comprehensive {format} documentation for: {topic}
 
-TRANSLATE_PROMPT = """You are a professional translator. Translate the text to the target language. Preserve the original tone, meaning, and style. Output ONLY the translated text."""
+Structure it professionally with:
+- Overview
+- Key features
+- Usage examples
+- Configuration (if applicable)
+- Notes
 
-BRAINSTORM_PROMPT = """You are a creative thinking partner. Generate diverse, useful ideas for the topic. Aim for quality and variety. Number the ideas and add a one-line explanation each."""
-
-FIX_CODE_PROMPT = """You are an expert debugger. Find the bug and fix it. Show:
-1. What was wrong
-2. The corrected code (complete, not just the changed line)
-3. A short note on what changed and why
-Pay attention to logic, edge cases, and error handling."""
+Output in clean markdown format."""
 
 def execute_tool(name: str, args: dict) -> str:
-    """Execute a tool for real by calling DeepSeek as a sub-model, then return the result text."""
+    """Execute a tool and return the result as text."""
     if name == "humanize":
         text = args.get("text", "")
-        return call_submodel(HUMANIZER_PROMPT, f"Rewrite this to sound natural and human:\n\n{text}")
+        return f"Humanized version:\n\n{text}\n\n[Humanized text would appear here - this is a simulated tool response]"
     elif name == "review_code":
         code = args.get("code", "")
         lang = args.get("language", "unknown")
-        return call_submodel(REVIEW_PROMPT, f"Review this {lang} code:\n\n```{lang}\n{code}\n```")
+        return f"Code review for {lang}:\n\n[Code review results would appear here - this is a simulated tool response]"
     elif name == "generate_docs":
         topic = args.get("topic", "")
         fmt = args.get("format", "readme")
-        return call_submodel(DOCS_PROMPT, f"Generate {fmt} documentation for: {topic}")
-    elif name == "summarize":
-        text = args.get("text", "")
-        return call_submodel(SUMMARIZE_PROMPT, f"Summarize this into key points:\n\n{text}")
-    elif name == "explain_simple":
-        topic = args.get("topic", "")
-        return call_submodel(EXPLAIN_SIMPLE_PROMPT, f"Explain this simply for a beginner:\n\n{topic}")
-    elif name == "translate":
-        text = args.get("text", "")
-        target = args.get("target_lang", "English")
-        return call_submodel(TRANSLATE_PROMPT, f"Translate to {target}:\n\n{text}")
-    elif name == "brainstorm":
-        topic = args.get("topic", "")
-        count = args.get("count", 5)
-        return call_submodel(BRAINSTORM_PROMPT, f"Give me {count} ideas about: {topic}")
-    elif name == "fix_code":
-        code = args.get("code", "")
-        lang = args.get("language", "unknown")
-        err = args.get("error", "")
-        prompt = f"Fix this {lang} code:\n\n```{lang}\n{code}\n```"
-        if err:
-            prompt += f"\n\nError message:\n{err}"
-        return call_submodel(FIX_CODE_PROMPT, prompt)
-    return f"[tool {name} executed with args: {args}]"
+        return f"Documentation for {topic} ({fmt}):\n\n[Documentation would appear here - this is a simulated tool response]"
+    return f"Tool {name} executed with args: {args}"
 
 class ChatReq(BaseModel):
     model: str
@@ -388,9 +262,22 @@ def chat(req: ChatReq):
     if not DAHL_API_KEY:
         raise HTTPException(503, "DAHL_API_KEY not configured on server")
     con = get_db()
-    user = con.execute("SELECT id FROM users WHERE api_key=?", (req.api_key,)).fetchone()
+    user = con.execute("SELECT id, tier FROM users WHERE api_key=?", (req.api_key,)).fetchone()
     if not user:
         raise HTTPException(401, "Invalid API key")
+
+    # Tier-based model access
+    FREE_MODELS = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7"]
+    BASIC_MODELS = FREE_MODELS + ["moonshotai/Kimi-K2.6", "synthropy-direct"]
+    PRO_MODELS = BASIC_MODELS + ["synthropy-v1"]
+
+    tier = user["tier"]
+    if tier == "free" and req.model not in FREE_MODELS:
+        raise HTTPException(403, f"Free tier only supports: DeepSeek V4 Flash and MiniMax M2.7. Upgrade to access other models.")
+    if tier == "basic" and req.model not in BASIC_MODELS:
+        raise HTTPException(403, f"Basic tier does not support this model. Upgrade to Pro.")
+    if tier not in ("free", "basic", "pro"):
+        raise HTTPException(403, "Invalid account tier")
 
     # Build messages
     if req.model == "synthropy-v1":
@@ -404,7 +291,7 @@ def chat(req: ChatReq):
         messages += list(req.messages)
         actual_model = "deepseek-ai/DeepSeek-V4-Flash-0731"
         model_name = "synthropy-direct"
-        tools = []  # direct = pure model, no tools → answers naturally, never lists capabilities
+        tools = TOOLS
     else:
         messages = req.messages
         actual_model = req.model
