@@ -39,6 +39,10 @@ def get_db():
         count INTEGER DEFAULT 1,
         created_at TEXT
     )""")
+    con.execute("""CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )""")
     con.commit()
     return con
 
@@ -125,6 +129,16 @@ def dashboard(api_key: str):
     }
 
 DAHL_API_KEY = os.environ.get("DAHL_API_KEY", "")
+
+# Try to load from DB if not set in env
+if not DAHL_API_KEY:
+    try:
+        con = get_db()
+        row = con.execute("SELECT value FROM settings WHERE key='dahl_api_key'").fetchone()
+        if row:
+            DAHL_API_KEY = row["value"]
+    except:
+        pass
 DAHL_BASE = os.environ.get("DAHL_BASE_URL", "https://inference.dahl.global/v1")
 
 # Synthropy custom model: DeepSeek V4 Flash wrapped with ALL skills
@@ -342,6 +356,13 @@ def set_dahl_key(req: DahlKeyReq, request: Request):
         raise HTTPException(403, "Invalid admin key")
     global DAHL_API_KEY
     DAHL_API_KEY = req.dahl_api_key
+    # Save to DB for persistence across restarts
+    try:
+        con = get_db()
+        con.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('dahl_api_key', ?)", (req.dahl_api_key,))
+        con.commit()
+    except:
+        pass
     return {"ok": True, "message": "Dahl API key updated, chat proxy now active"}
 
 # Serve static HTML files (after API routes so they take priority)
