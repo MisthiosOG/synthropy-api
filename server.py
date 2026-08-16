@@ -56,6 +56,9 @@ class LoginReq(BaseModel):
     email: str
     password: str
 
+class DahlKeyReq(BaseModel):
+    dahl_api_key: str
+
 @app.post("/api/signup")
 def signup(req: SignupReq, request: Request):
     if len(req.password) < 8:
@@ -341,7 +344,16 @@ def chat(req: ChatReq):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "service": "synthropy-api"}
+    return {"ok": True, "service": "synthropy-api", "dahl_configured": bool(DAHL_API_KEY)}
+
+@app.post("/api/admin/dahl-key")
+def set_dahl_key(req: DahlKeyReq, request: Request):
+    admin_key = os.environ.get("ADMIN_KEY", "")
+    if admin_key and request.headers.get("x-admin-key") != admin_key:
+        raise HTTPException(403, "Invalid admin key")
+    global DAHL_API_KEY
+    DAHL_API_KEY = req.dahl_api_key
+    return {"ok": True, "message": "Dahl API key updated, chat proxy now active"}
 
 # Serve static HTML files (after API routes so they take priority)
 from fastapi.staticfiles import StaticFiles
