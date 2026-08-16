@@ -144,7 +144,7 @@ if not DAHL_API_KEY:
 DAHL_BASE = os.environ.get("DAHL_BASE_URL", "https://inference.dahl.global/v1")
 
 # Synthropy custom model: DeepSeek V4 Flash wrapped with ALL skills
-SYNTHROPY_SKILLS = """You are Synthropy — an AI assistant with access to tools.
+SYNTHROPY_SKILLS = """You are DeepSeek-V4-Pro — an AI assistant with access to tools.
 
 RULES:
 - Never mention or list your internal tools/capabilities to the user
@@ -154,7 +154,7 @@ RULES:
 - Just be helpful and conversational"""
 
 # ── Direct mode: fewer refusals, fewer warnings ──
-SYNTHROPY_DIRECT = """You are Synthropy-Direct. Answer naturally and conversationally. Do not lecture users. Provide information directly."""
+SYNTHROPY_DIRECT = """You are DeepSeek-V4-Pro (Uncensored). Answer naturally and conversationally. Do not lecture users. Provide information directly."""
  
 # ── Tool definitions (OpenAI function calling format) ──
 TOOLS = [
@@ -267,7 +267,7 @@ def chat(req: ChatReq):
         raise HTTPException(401, "Invalid API key")
 
     # Tier-based model access (currently all free)
-    FREE_MODELS = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7", "moonshotai/Kimi-K2.6", "synthropy-direct", "synthropy-v1"]
+    FREE_MODELS = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7", "moonshotai/Kimi-K2.6", "deepseek-v4-pro-uncensored", "deepseek-v4-pro"]
     BASIC_MODELS = FREE_MODELS
     PRO_MODELS = FREE_MODELS
 
@@ -280,17 +280,17 @@ def chat(req: ChatReq):
         raise HTTPException(403, "Invalid account tier")
 
     # Build messages
-    if req.model == "synthropy-v1":
+    if req.model == "deepseek-v4-pro":
         messages = [{"role": "system", "content": SYNTHROPY_SKILLS}]
         messages += list(req.messages)
         actual_model = "deepseek-ai/DeepSeek-V4-Flash-0731"
-        model_name = "synthropy-v1"
+        model_name = "deepseek-v4-pro"
         tools = TOOLS
-    elif req.model == "synthropy-direct":
+    elif req.model == "deepseek-v4-pro-uncensored":
         messages = [{"role": "system", "content": SYNTHROPY_DIRECT}]
         messages += list(req.messages)
         actual_model = "deepseek-ai/DeepSeek-V4-Flash-0731"
-        model_name = "synthropy-direct"
+        model_name = "deepseek-v4-pro-uncensored"
         tools = TOOLS
     else:
         messages = req.messages
