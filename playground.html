@@ -215,6 +215,14 @@
 
 <script>
 var key = localStorage.getItem('syn_api_key');
+// Check URL parameter for API key (?key=xxx)
+var urlKey = new URLSearchParams(window.location.search).get('key');
+if (urlKey) {
+  key = urlKey;
+  localStorage.setItem('syn_api_key', key);
+  // Clean URL without reload
+  window.history.replaceState({}, '', window.location.pathname);
+}
 if (!key) window.location.href = 'signin.html';
 document.getElementById('keyDisplay').textContent = key;
 
