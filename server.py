@@ -356,7 +356,6 @@ def set_dahl_key(req: DahlKeyReq, request: Request):
         raise HTTPException(403, "Invalid admin key")
     global DAHL_API_KEY
     DAHL_API_KEY = req.dahl_api_key
-    # Save to DB for persistence across restarts
     try:
         con = get_db()
         con.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('dahl_api_key', ?)", (req.dahl_api_key,))
@@ -364,6 +363,12 @@ def set_dahl_key(req: DahlKeyReq, request: Request):
     except:
         pass
     return {"ok": True, "message": "Dahl API key updated, chat proxy now active"}
+
+@app.get("/api/admin/users")
+def list_users():
+    con = get_db()
+    rows = con.execute("SELECT email, api_key, tokens_used, tokens_granted, created_at FROM users ORDER BY created_at DESC").fetchall()
+    return {"users": [{"email": r["email"], "api_key": r["api_key"], "tokens_used": r["tokens_used"], "tokens_granted": r["tokens_granted"]} for r in rows]}
 
 # Serve static HTML files (after API routes so they take priority)
 from fastapi.staticfiles import StaticFiles
