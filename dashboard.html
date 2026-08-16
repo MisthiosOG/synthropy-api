@@ -240,7 +240,7 @@ function fmt(n) {
   return n.toString();
 }
 
-fetch('/api/dashboard/' + encodeURIComponent(key))
+fetch('/api/dashboard?api_key=' + encodeURIComponent(key))
   .then(function(r) { return r.json(); })
   .then(function(d) {
     if (!d.ok) { window.location.href = 'signin.html'; return; }
