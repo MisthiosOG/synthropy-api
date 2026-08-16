@@ -191,7 +191,7 @@
     <div class="stat-card">
       <div class="val" id="sRemaining">-</div>
       <div class="lbl">Remaining</div>
-      <div class="sub"><span id="sPct">-</span> of total</div>
+      <div class="sub"><span id="sPct">-</span> of total · <span id="sTier">free</span></div>
     </div>
   </div>
 
@@ -255,6 +255,7 @@ fetch('/api/dashboard?api_key=' + encodeURIComponent(key))
     document.getElementById('sRemaining').textContent = fmt(d.tokens_left);
     var pct = d.tokens_granted > 0 ? (d.tokens_used / d.tokens_granted * 100).toFixed(1) : '0';
     document.getElementById('sPct').textContent = pct + '%';
+    document.getElementById('sTier').textContent = d.tier;
 
     document.getElementById('tbUsed').textContent = fmt(d.tokens_used);
     document.getElementById('tbTotal').textContent = fmt(d.tokens_granted);
